@@ -1,0 +1,225 @@
+/* Основной фон и текст подстраиваются под Telegram */
+body {
+    background-color: var(--tg-theme-bg-color, #1a1a1a);
+    color: var(--tg-theme-text-color, #ffffff);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    text-align: center;
+}
+
+/* Делаем камеру идеально круглой */
+#camera-wrap {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    border: 6px solid var(--tg-theme-button-color, #3390ec);
+    overflow: hidden;
+    margin: 20px auto;
+    background: #000; /* Черный фон, пока камера грузится */
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block; /* Добавь это, чтобы убрать лишние отступы */
+    transform: scaleX(-1); 
+}
+
+/* Стили кнопки из видео Гоши */
+button {
+    background-color: var(--tg-theme-button-color, #3390ec);
+    color: var(--tg-theme-button-text-color, #ffffff);
+    border: none;
+    padding: 15px 40px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* Важно: родительский блок должен иметь позицию relative */
+#camera-wrap {
+    position: relative;
+    /* Остальные стили (width, height, border-radius) оставь как были */
+}
+
+/* Видео и холст растягиваются на весь круг */
+#video, #output {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Зеркалим оба элемента, чтобы рисунок совпадал с лицом */
+    transform: scaleX(-1);
+}
+
+/* Холст должен быть прозрачным, чтобы видно было видео под ним */
+#output {
+    z-index: 2; /* Холст лежит выше видео */
+    pointer-events: none; /* Чтобы сквозь него можно было кликать, если нужно */
+}
+
+/* Стили для экрана результатов */
+/* Стили для экрана результатов */
+#result-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 100; /* Он лежит выше всех */
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    
+    opacity: 0; /* Он прозрачный */
+    
+    /* !!! ВОТ ЭТОЙ СТРОКИ НЕ ХВАТАЕТ !!! */
+    pointer-events: none; /* Пропускаем клики сквозь экран, пока он прозрачный */
+    
+    transition: opacity 0.3s ease;
+}
+
+/* Когда добавляем класс .show — включаем клики обратно */
+#result-screen.show {
+    opacity: 1;
+    pointer-events: auto; /* Теперь клики работают (чтобы нажать кнопку "Отправить") */
+}
+
+.result-content {
+    text-align: center;
+    color: white;
+    transform: scale(0.8);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Эффект пружины */
+}
+
+#result-screen.show .result-content {
+    transform: scale(1);
+}
+
+h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.score-box {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+#final-score {
+    font-size: 48px;
+    font-weight: bold;
+    color: #ffcc00;
+}
+
+.vs {
+    font-size: 14px;
+    color: #888;
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+#submit-btn {
+    margin-top: 30px;
+    background: white;
+    color: black;
+    font-weight: bold;
+}
+/* --- СТИЛИ ДЛЯ МЕНЮ СКИНОВ --- */
+
+/* Кнопка в углу */
+.top-btn {
+    position: absolute;
+    top: 15px;
+    z-index: 20;
+    padding: 8px 15px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+}
+.left-btn { left: 15px; }
+
+/* Общий стиль для перекрывающих экранов (Результат и Скины) */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0;
+    pointer-events: none; /* Важно! Пропускаем клики, пока скрыто */
+    transition: opacity 0.3s ease;
+}
+
+.overlay.show {
+    opacity: 1;
+    pointer-events: auto; /* Включаем клики */
+}
+
+/* Контейнер меню скинов */
+.skin-selector-box {
+    background: #1a1a1a;
+    padding: 25px;
+    border-radius: 20px;
+    border: 1px solid #333;
+    text-align: center;
+}
+
+.skins-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+/* Кнопка выбора скина */
+.skin-option {
+    background: #2a2a2a;
+    border: 2px solid transparent;
+    padding: 10px;
+    border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center;
+    transition: all 0.2s;
+}
+/* Подсветка выбранного скина */
+.skin-option.active {
+    border-color: #00FF00;
+    background: #333;
+}
+
+.skin-preview {
+    width: 80px; height: 50px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    object-fit: cover;
+}
+.default-preview { border: 2px solid #00FF00; background: transparent; }
+
+.close-btn {
+    background: #444;
+    margin-top: 10px;
+}

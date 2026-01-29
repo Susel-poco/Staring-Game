@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игра Гляделки</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</head>
+<body>
+    <div id="game-container">
+        <button id="skins-btn" class="top-btn left-btn">👕 Скины</button>
+        <h1>Не моргай! 👁️</h1>
+        <div id="camera-wrap">
+            <video id="video" autoplay playsinline muted></video>
+            <canvas id="output"></canvas>
+        </div>
+        <div id="duel-container" style="display: none; margin-bottom: 10px; font-size: 18px;">
+    🎯      Цель: <span id="target-score" style="color: #ff4b4b; font-weight: bold;">0.00</span> сек
+        </div>
+        <div id="info">
+            <p id="timer">Время: 0.00 сек</p>
+        </div>
+        <p style="color: yellow; font-size: 12px;">Коэффициент глаз: <span id="debug-ear">0.00</span></p>
+        <button id="action-btn">Начать игру</button>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <div class="result-content">
+            <h1 id="result-title">ИГРА ОКОНЧЕНА</h1>
+        
+            <div class="score-box">
+                p>Твой результат:</p>
+                <span id="final-score">0.00</span> сек
+            </div>
+
+            <div id="duel-result-info" style="display: none;">
+                <p class="vs">VS</p>
+                <p>Рекорд соперника:</p>
+                <span id="opponent-score">0.00</span> сек
+            </div>
+
+            <button id="submit-btn">Отправить результат 📤</button>
+        </div>
+    </div>
+    <div id="skins-menu" class="overlay hidden">
+    <div class="menu-content skin-selector-box">
+        <h2>Выберите скин для глаз</h2>
+        <div class="skins-grid">
+            <button class="skin-option active" data-skin="default">
+                <div class="skin-preview default-preview"></div>
+                <span>Стандарт (Обводка)</span>
+            </button>
+            <button class="skin-option" data-skin="kazakhstan">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Flag_of_Kazakhstan.svg/320px-Flag_of_Kazakhstan.svg.png" class="skin-preview">
+                <span>Казахстан</span>
+            </button>
+        </div>
+        <button id="close-skins-btn" class="close-btn">Закрыть</button>
+    </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
