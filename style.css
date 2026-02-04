@@ -111,6 +111,7 @@ button:active {
     color: white;
     transform: scale(0.8);
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Эффект пружины */
+    position: relative;
 }
 
 #result-screen.show .result-content {
@@ -161,6 +162,9 @@ h1 {
     border-radius: 20px;
 }
 .left-btn { left: 15px; }
+.right-btn {
+    right: 15px; /* Прижимаем вправо */
+}
 
 /* Общий стиль для перекрывающих экранов (Результат и Скины) */
 .overlay {
@@ -223,3 +227,63 @@ h1 {
     background: #444;
     margin-top: 10px;
 }
+/* Стиль для крестика */
+.close-icon {
+    position: absolute;
+    top: -20px;
+    right: 0;
+    background: transparent; /* Прозрачный фон */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex; justify-content: center; align-items: center;
+}
+.close-icon:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.9);
+}
+/* --- СТИЛИ РЕЙТИНГА --- */
+.leaderboard-box {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid #333;
+    width: 80%;
+    max-width: 350px;
+}
+
+.leaderboard-header {
+    display: grid;
+    grid-template-columns: 30px 1fr 70px; /* Место, Имя, Очки */
+    padding: 10px;
+    font-weight: bold;
+    color: #888;
+    border-bottom: 1px solid #333;
+    margin-bottom: 10px;
+}
+
+/* Строка игрока */
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 30px 1fr 70px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    align-items: center;
+}
+
+/* Это ТЫ (выделяем цветом) */
+.leaderboard-row.me {
+    background: rgba(0, 255, 0, 0.2); /* Зеленоватый фон */
+    border: 1px solid #00FF00;
+    font-weight: bold;
+}
+
+/* Цвета для топ-3 */
+.rank-1 { color: #FFD700; } /* Золото */
+.rank-2 { color: #C0C0C0; } /* Серебро */
+.rank-3 { color: #CD7F32; } /* Бронза */

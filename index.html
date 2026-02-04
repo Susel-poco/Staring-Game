@@ -12,13 +12,14 @@
 <body>
     <div id="game-container">
         <button id="skins-btn" class="top-btn left-btn">👕 Скины</button>
+        <button id="leaderboard-btn" class="top-btn right-btn">🏆 Рейтинг</button>
         <h1>Не моргай! 👁️</h1>
         <div id="camera-wrap">
             <video id="video" autoplay playsinline muted></video>
             <canvas id="output"></canvas>
         </div>
         <div id="duel-container" style="display: none; margin-bottom: 10px; font-size: 18px;">
-    🎯      Цель: <span id="target-score" style="color: #ff4b4b; font-weight: bold;">0.00</span> сек
+            🎯 Цель: <span id="target-score" style="color: #ff4b4b; font-weight: bold;">0.00</span> сек
         </div>
         <div id="info">
             <p id="timer">Время: 0.00 сек</p>
@@ -29,10 +30,12 @@
 
     <div id="result-screen" class="hidden">
         <div class="result-content">
+            <button id="close-result-btn" class="close-icon">✕</button>
+            
             <h1 id="result-title">ИГРА ОКОНЧЕНА</h1>
         
             <div class="score-box">
-                p>Твой результат:</p>
+                <p>Твой результат:</p>
                 <span id="final-score">0.00</span> сек
             </div>
 
@@ -45,21 +48,51 @@
             <button id="submit-btn">Отправить результат 📤</button>
         </div>
     </div>
+
     <div id="skins-menu" class="overlay hidden">
-    <div class="menu-content skin-selector-box">
-        <h2>Выберите скин для глаз</h2>
-        <div class="skins-grid">
-            <button class="skin-option active" data-skin="default">
-                <div class="skin-preview default-preview"></div>
-                <span>Стандарт (Обводка)</span>
-            </button>
-            <button class="skin-option" data-skin="kazakhstan">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Flag_of_Kazakhstan.svg/320px-Flag_of_Kazakhstan.svg.png" class="skin-preview">
-                <span>Казахстан</span>
-            </button>
+        <div class="menu-content skin-selector-box">
+            <h2>Выберите скин для глаз</h2>
+            <div class="skins-grid">
+                <button class="skin-option active" data-skin="default">
+                    <div class="skin-preview default-preview"></div>
+                    <span>Обычные</span>
+                </button>
+
+                <button class="skin-option" data-skin="kazakhstan">
+                    <img src="kazakhstan.png" class="skin-preview">
+                    <span>Казахстан</span>
+                </button>
+
+                <button class="skin-option" data-skin="sharingan">
+                    <img src="sharingan.jpg" class="skin-preview">
+                    <span>Шаринган</span>
+                </button>
+
+                <button class="skin-option" data-skin="itachi">
+                    <img src="itachi.png" class="skin-preview">
+                    <span>Итачи</span>
+                </button>
+
+                <button class="skin-option" data-skin="rinnegan">
+                    <img src="rinnegan.jpg" class="skin-preview">
+                    <span>Риннеган</span>
+                </button>
+            </div>
+            <button id="close-skins-btn" class="close-btn">Закрыть</button>
         </div>
-        <button id="close-skins-btn" class="close-btn">Закрыть</button>
     </div>
+    <div id="leaderboard-menu" class="overlay hidden">
+        <div class="menu-content leaderboard-box">
+            <h2>🏆 Топ Гляделок</h2>
+            <div class="leaderboard-header">
+                <span>#</span>
+                <span style="text-align: left;">Игрок</span>
+                <span>Время</span>
+            </div>
+            <div id="leaderboard-list">
+                </div>
+            <button id="close-leaderboard-btn" class="close-btn">Закрыть</button>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
