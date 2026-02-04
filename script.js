@@ -18,8 +18,9 @@ const skins = {
     'default': null, 
     'kazakhstan': new Image(),
     'sharingan': new Image(),
-    'itachi': new Image(),
-    'rinnegan': new Image()
+    'russia': new Image(),
+    'rinnegan': new Image(),
+    'kyrgyzstan': new Image()
 };
 
 // Функция упростилась: теперь просто указываем путь к файлу
@@ -30,8 +31,9 @@ function loadSkin(key, fileName) {
 // Теперь используем просто имена файлов, которые ты загрузил на GitHub
 loadSkin('kazakhstan', 'kazakhstan.png');
 loadSkin('sharingan', 'sharingan.jpg');
-loadSkin('itachi', 'itachi.png');
+loadSkin('russia', 'russia.jpg');
 loadSkin('rinnegan', 'rinnegan.jpg');
+loadSkin('kyrgyzstan', 'kyrgyzstan.jpeg');
 // ------------------------------------
 
 if (targetRecord) {
