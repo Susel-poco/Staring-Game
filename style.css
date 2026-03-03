@@ -227,25 +227,7 @@ h1 {
     background: #444;
     margin-top: 10px;
 }
-/* Стиль для крестика */
-.close-icon {
-    position: absolute;
-    top: -20px;
-    right: 0;
-    background: transparent; /* Прозрачный фон */
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    font-size: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    padding: 0;
-    display: flex; justify-content: center; align-items: center;
-}
-.close-icon:active {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(0.9);
-}
+
 /* --- СТИЛИ РЕЙТИНГА --- */
 .leaderboard-box {
     background: #1a1a1a;
@@ -293,4 +275,33 @@ h1 {
     display: block;           /* Превращаем кнопку в блок, чтобы можно было двигать */
     margin: 15px auto 0 auto; /* "auto" по бокам выравнивает её по центру */
     width: fit-content;       /* Кнопка будет шириной по тексту, а не во всю строку */
+}
+
+#nickname-field {
+    background-color: var(--tg-theme-secondary-bg-color, #2b2b2b); /* Темный фон */
+    color: white;
+    border: 2px solid #3390ec;
+    width: 60%;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+#nickname-field:focus {
+    border-color: #00FF00; /* Зеленый при нажатии */
+}
+
+
+
+/* Контейнер для FPS внутри круга камеры */
+#fps-box {
+    position: absolute;
+    top: 55px;       /* Отступ сверху */
+    right: 55px;     /* Отступ справа */
+    z-index: 10;     /* Поверх видео и холста */
+    color: #00FF00;  /* Ярко-зеленый (lime) */
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px black; /* Тень, чтобы было видно на светлом фоне */
+    pointer-events: none; /* Чтобы счетчик не мешал кликам */
 }

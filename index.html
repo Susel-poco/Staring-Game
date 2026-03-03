@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Игра Гляделки</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 </head>
 <body>
+    
     <div id="game-container">
         <button id="skins-btn" class="top-btn left-btn">👕 Скины</button>
         <button id="leaderboard-btn" class="top-btn right-btn">🏆 Рейтинг</button>
         <h1>Не моргай! 👁️</h1>
+        
         <div id="camera-wrap">
             <video id="video" autoplay playsinline muted></video>
             <canvas id="output"></canvas>
+            <div id="fps-box">FPS: <span id="fps-counter">0</span></div>
         </div>
-        <div id="duel-container" style="display: none; margin-bottom: 10px; font-size: 18px;">
-            🎯 Цель: <span id="target-score" style="color: #ff4b4b; font-weight: bold;">0.00</span> сек
-        </div>
+
         <div id="info">
             <p id="timer">Время: 0.00 сек</p>
         </div>
@@ -30,7 +32,6 @@
 
     <div id="result-screen" class="hidden">
         <div class="result-content">
-            <button id="close-result-btn" class="close-icon">✕</button>
             
             <h1 id="result-title">ИГРА ОКОНЧЕНА</h1>
         
@@ -45,7 +46,7 @@
                 <span id="opponent-score">0.00</span> сек
             </div>
 
-            <button id="submit-btn">Отправить результат 📤</button>
+            <button id="submit-btn">Закрыть</button>
         </div>
     </div>
 

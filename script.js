@@ -1,5 +1,16 @@
-let tg = window.Telegram.WebApp;
-tg.expand();
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyALry366Yejb8wV3DLsrK8Wy4EV85sLyBU",
+  authDomain: "staring-game.firebaseapp.com",
+  projectId: "staring-game",
+  storageBucket: "staring-game.firebasestorage.app",
+  messagingSenderId: "912261406650",
+  appId: "1:912261406650:web:4f04076cd53d22e463c783"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 // Читаем параметры из ссылки
 const urlParams = new URLSearchParams(window.location.search);
@@ -166,11 +177,6 @@ faceMesh.onResults((results) => {
     // 4. Логика проигрыша
     if (isGameRunning) {
         if (currentAvgEAR < blinkThreshold) { 
-            // Рисуем красным только если дефолт, иначе оставляем скин
-            if (currentSkin === 'default') {
-                drawConnectors(canvasCtx, landmarks, LEFT_EYE_INDICES, '#FF0000');
-                drawConnectors(canvasCtx, landmarks, RIGHT_EYE_INDICES, '#FF0000');
-            }
             endGame();
         }
     }
@@ -188,6 +194,19 @@ const camera = new Camera(video, {
 camera.start();
 
 function startGame() {
+    let playerNick = localStorage.getItem('playerNick');
+    if (!playerNick) {
+        // Запрашиваем ник через встроенное окно браузера
+        playerNick = prompt("Введите ваш никнейм для таблицы рекордов:", "Игрок");
+        
+        // Если пользователь нажал "Отмена" или ничего не ввел
+        if (!playerNick || playerNick.trim() === "") {
+            playerNick = "Аноним"; 
+        }
+        // Запоминаем ник навсегда
+        localStorage.setItem('playerNick', playerNick.trim());
+    }
+
     isGameRunning = true;
     startTime = Date.now();
     
@@ -230,46 +249,31 @@ let finalDataToSend = null;
 function endGame() {
     isGameRunning = false;
     const finalTime = (Date.now() - startTime) / 1000;
-    let currentBest = parseFloat(localStorage.getItem('myBestScore')) || 0;
-    if (finalTime > currentBest) {
-        localStorage.setItem('myBestScore', finalTime);
-    }
-    finalDataToSend = {
-        score: finalTime.toFixed(2),
-        duel_id: duelId 
-    };
-
-    finalScoreDisplay.innerText = finalTime.toFixed(2);
     
-    if (targetRecord) {
-        duelResultInfo.style.display = "block";
-        opponentScoreDisplay.innerText = targetRecord.toFixed(2);
-        
-        if (finalTime > targetRecord) {
-            resultTitle.innerText = "ТЫ ПОБЕДИЛ! 🏆";
-            resultTitle.style.color = "#00FF00"; 
-            finalScoreDisplay.style.color = "#00FF00";
-        } else {
-            resultTitle.innerText = "ПОТРАЧЕНО 💀";
-            resultTitle.style.color = "#FF0000"; 
-            finalScoreDisplay.style.color = "#FF4b4b";
-        }
-    } else {
-        duelResultInfo.style.display = "none";
-        resultTitle.innerText = "ИГРА ОКОНЧЕНА";
-        resultTitle.style.color = "#FFFFFF";
-        finalScoreDisplay.style.color = "#ffcc00";
-    }
+    // Берем ник из памяти (мы его точно сохранили при старте)
+    const playerName = localStorage.getItem('playerNick') || "Аноним";
 
+    // Отправляем в Firebase
+    db.collection("leaderboard").add({
+        name: playerName,
+        score: finalTime,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        console.log("Результат сохранен!");
+    });
+
+    // Показ экрана результатов
+    finalScoreDisplay.innerText = finalTime.toFixed(2);
     resultScreen.classList.add('show');
 }
 
 submitBtn.addEventListener('click', () => {
-    if (finalDataToSend) {
-        tg.sendData(JSON.stringify(finalDataToSend));
-    } else {
-        tg.close();
-    }
+    // Просто закрываем экран результатов, чтобы игрок мог начать заново
+    resultScreen.classList.remove('show');
+    actionBtn.innerText = "Начать игру";
+    actionBtn.disabled = false;
+
+    actionBtn.style.backgroundColor = "";
 });
 
 // --- ЛОГИКА МЕНЮ СКИНОВ ---
@@ -310,17 +314,6 @@ skinOptions.forEach(button => {
     });
 });
 
-// Логика крестика (закрыть результаты без отправки)
-document.getElementById('close-result-btn').addEventListener('click', () => {
-    // Просто убираем класс show, скрывая окно
-    document.getElementById('result-screen').classList.remove('show');
-    // Можно еще сбросить текст кнопки
-    actionBtn.innerText = "Начать игру";
-    actionBtn.disabled = false;
-    actionBtn.style.backgroundColor = "#3390ec"; // Вернуть синий цвет
-});
-
-
 // --- ЛОГИКА РЕЙТИНГА (С ПРОГРЕССОМ) ---
 const leaderboardBtn = document.getElementById('leaderboard-btn');
 const leaderboardMenu = document.getElementById('leaderboard-menu');
@@ -339,69 +332,43 @@ function randomScore(min, max) {
 }
 
 leaderboardBtn.addEventListener('click', () => {
-    leaderboardList.innerHTML = '';
-    
-    // 1. Берем наш рекорд
-    let myBestScore = parseFloat(localStorage.getItem('myBestScore')) || 0;
-    
-    // 2. Генерируем "Элитный Топ-10" (у них всегда от 40 до 90 сек)
-    // Это цель, к которой игрок должен стремиться
-    let players = [];
-    fakeNames.slice(0, 10).forEach(name => {
-        players.push({ 
-            name: name, 
-            score: parseFloat(randomScore(40, 95)), // Сильные боты
-            isMe: false 
-        });
-    });
-
-    // 3. Проверяем, попал ли игрок в Топ-10?
-    // Сортируем ботов, чтобы найти самого слабого из элиты (10-е место)
-    players.sort((a, b) => b.score - a.score);
-    let gatekeeperScore = players[9].score; // Очки 10-го места
-
-    if (myBestScore > gatekeeperScore) {
-        // СЦЕНАРИЙ А: Мы крутые! (Входим в топ-10)
-        players.push({ name: "ВЫ", score: myBestScore, isMe: true });
-        // Снова сортируем вместе с нами
-        players.sort((a, b) => b.score - a.score);
-        // Отрезаем лишнего 11-го бота, чтобы осталось 10
-        players = players.slice(0, 10);
-        
-        // Рисуем список
-        players.forEach((player, index) => {
-            renderRow(index + 1, player);
-        });
-
-    } else {
-        // СЦЕНАРИЙ Б: Мы еще слабы (Ниже 10-го места)
-        // Рассчитываем наше фейковое место
-        
-        // Разница между 10-м местом и нами
-        let diff = gatekeeperScore - myBestScore;
-        
-        // Формула: 10 + (разница * 1.5). 
-        // Чем меньше разница, тем мы ближе к 10-ке.
-        // Пример: Если разница 1 сек, мы на 12 месте. Если 30 сек — на 55 месте.
-        let myFakeRank = 11 + Math.floor(diff * 1.5);
-        
-        // 1. Рисуем Топ-10 (без нас)
-        players.forEach((player, index) => {
-            renderRow(index + 1, player);
-        });
-
-        // 2. Рисуем разделитель "..."
-        let dots = document.createElement('div');
-        dots.style.textAlign = 'center';
-        dots.style.color = '#888';
-        dots.innerText = '...';
-        leaderboardList.appendChild(dots);
-
-        // 3. Рисуем НАС на нашем вычисленном месте
-        renderRow(myFakeRank, { name: "ВЫ", score: myBestScore, isMe: true });
-    }
-
+    const myName = localStorage.getItem('playerNick') || "Аноним";
+    leaderboardList.innerHTML = '<div style="text-align:center; padding: 20px;">Загрузка данных... ⏳</div>';
     leaderboardMenu.classList.add('show');
+    
+    // Запрашиваем топ-10 игроков
+    db.collection("leaderboard")
+      .orderBy("score", "desc")
+      .limit(10)
+      .get()
+      .then((querySnapshot) => {
+          leaderboardList.innerHTML = ''; 
+          let rank = 1;
+          
+          // ❌ УДАЛИ ИЛИ ЗАМЕНИ ЭТУ СТРОКУ, ОНА ВЫЗЫВАЕТ ОШИБКУ:
+          // const myName = tg.initDataUnsafe?.user?.first_name || "Аноним";
+
+          querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              // Проверяем, это наш результат или чужой
+              const isMe = data.name === myName;
+              
+              renderRow(rank, { 
+                  name: data.name, 
+                  score: data.score.toFixed(2), 
+                  isMe: isMe 
+              });
+              rank++;
+          });
+          
+          if (querySnapshot.empty) {
+              leaderboardList.innerHTML = '<div style="text-align:center;">Пока нет рекордов. Будь первым!</div>';
+          }
+      })
+      .catch((error) => {
+          console.error("Ошибка загрузки рейтинга:", error);
+          leaderboardList.innerHTML = '<div style="text-align:center; color: red;">Ошибка сети 🌐</div>';
+      });
 });
 
 // Вспомогательная функция для рисования строки
@@ -423,6 +390,23 @@ function renderRow(rank, player) {
     `;
     leaderboardList.appendChild(row);
 }
+
+// --- СЧЕТЧИК FPS ---
+const fpsDisplay = document.getElementById('fps-counter');
+let lastFrameTime = performance.now();
+let frameCount = 0;
+
+function calculateFPS() {
+    const now = performance.now();
+    frameCount++;
+    if (now - lastFrameTime >= 1000) { // Обновляем раз в секунду
+        fpsDisplay.innerText = frameCount;
+        frameCount = 0;
+        lastFrameTime = now;
+    }
+    requestAnimationFrame(calculateFPS);
+}
+calculateFPS();
 
 closeLeaderboardBtn.addEventListener('click', () => {
     leaderboardMenu.classList.remove('show');
