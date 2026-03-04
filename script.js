@@ -1,5 +1,3 @@
-
-
 const firebaseConfig = {
   apiKey: "AIzaSyALry366Yejb8wV3DLsrK8Wy4EV85sLyBU",
   authDomain: "staring-game.firebaseapp.com",
@@ -8,6 +6,18 @@ const firebaseConfig = {
   messagingSenderId: "912261406650",
   appId: "1:912261406650:web:4f04076cd53d22e463c783"
 };
+
+let bannedWords = [];
+
+// Загружаем твой файл profanity-list.json
+fetch('profanity-list.json')
+    .then(response => response.json())
+    .then(data => {
+        // Выбираем только русский список слов из объекта
+        bannedWords = data.ru; 
+        console.log("База плохих слов (RU) загружена. Всего слов: " + bannedWords.length);
+    })
+    .catch(err => console.error("Ошибка загрузки цензора:", err));
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -31,8 +41,14 @@ const skins = {
     'sharingan': new Image(),
     'russia': new Image(),
     'rinnegan': new Image(),
-    'kyrgyzstan': new Image()
+    'kyrgyzstan': new Image(),
+    'heisenberg': new Image(),
+    'saul': new Image()
+
 };
+
+loadSkin('heisenberg', 'heisenberg.png');
+loadSkin('saul', 'saul_goodman.png');
 
 // Функция упростилась: теперь просто указываем путь к файлу
 function loadSkin(key, fileName) {
@@ -151,10 +167,62 @@ faceMesh.onResults((results) => {
     // 2. РИСУЕМ ГЛАЗА (В защищенном блоке)
     try {
         if (currentSkin === 'default') {
-            const color = isGameRunning ? '#00FF00' : '#FFFFFF';
+            const color = isGameRunning ? '#31e52e' : '#FFFFFF';
             drawConnectors(canvasCtx, landmarks, LEFT_EYE_INDICES, color);
             drawConnectors(canvasCtx, landmarks, RIGHT_EYE_INDICES, color);
-        } else {
+        } 
+        // --- НОВАЯ ЛОГИКА ДЛЯ ПОЛНОЙ МАСКИ (Хайзенберг) ---
+        else if (currentSkin === 'heisenberg' || currentSkin === 'saul') {
+            const skinImg = skins[currentSkin];
+            if (skinImg && skinImg.complete) {
+                // Точки привязки остаются те же
+                const top = landmarks[10];
+                const bottom = landmarks[152];
+                const left = landmarks[234];
+                const right = landmarks[454];
+
+                // Ширина и высота самого лица игрока
+                const faceWidth = Math.abs(right.x - left.x) * canvas.width;
+                const faceHeight = Math.abs(bottom.y - top.y) * canvas.height;
+
+                // Центр маски — точка между глаз (168)
+                const centerX = landmarks[168].x * canvas.width;
+                const centerY = landmarks[168].y * canvas.height;
+
+                // --- ⚙️ НАСТРОЙКИ РАЗМЕРА И ПОЗИЦИИ ⚙️ ---
+
+                // 1. УМЕНЬШАЕМ РАЗМЕР (был 1.8, делаем меньше)
+                // Если маска всё ещё большая, сделай число ещё меньше (например, 1.45)
+                const scale = 1.57; 
+                const maskW = faceWidth * scale;
+                const maskH = maskW * (skinImg.height / skinImg.width);
+
+                // 2. ПОДНИМАЕМ ВВЕРХ
+                // Мы вычисляем смещение вверх как процент от высоты лица (faceHeight).
+                // 0.2 — это 20% высоты лица. Если маска низко, увеличивай это число (0.25, 0.3...)
+                // Если маска слишком высоко улетела, уменьшай число (0.15, 0.1...)
+                const verticalOffset = faceHeight * 0.14; 
+
+                // --- 🖌️ ОТРИСОВКА 🖌️ ---
+                canvasCtx.save();
+                
+                // Зеркальное отображение (Mirror) уже учтено в CSS, рисуем прямо
+                canvasCtx.drawImage(
+                    skinImg, 
+                    centerX - maskW / 2, // Горизонтально — по центру
+                    
+                    // 👇 ВОТ ЗДЕСЬ МЫ ПОДНИМАЕМ МАСКУ 👇
+                    // (ЦентрY - половина маски) - СмещениеВверх
+                    (centerY - maskH / 2) - verticalOffset, 
+                    
+                    maskW, 
+                    maskH
+                );
+                canvasCtx.restore();
+            }
+}
+        // Старая логика для обычных глазных скинов
+        else {
             const skinImg = skins[currentSkin];
             if (skinImg && skinImg.complete) {
                 drawSkinFilled(canvasCtx, landmarks, LEFT_EYE_INDICES, skinImg);
@@ -162,7 +230,7 @@ faceMesh.onResults((results) => {
             }
         }
     } catch (error) {
-        console.log("Ошибка в рисовании, но игру продолжаем!", error);
+        console.log("Ошибка отрисовки маски:", error);
     }
 
     // 3. Считаем EAR
@@ -193,23 +261,65 @@ const camera = new Camera(video, {
 });
 camera.start();
 
-function startGame() {
-    let playerNick = localStorage.getItem('playerNick');
-    if (!playerNick) {
-        // Запрашиваем ник через встроенное окно браузера
-        playerNick = prompt("Введите ваш никнейм для таблицы рекордов:", "Игрок");
-        
-        // Если пользователь нажал "Отмена" или ничего не ввел
-        if (!playerNick || playerNick.trim() === "") {
-            playerNick = "Аноним"; 
-        }
-        // Запоминаем ник навсегда
-        localStorage.setItem('playerNick', playerNick.trim());
-    }
+// --- ЛОГИКА ОТОБРАЖЕНИЯ И ИЗМЕНЕНИЯ НИКА ---
+const currentNickDisplay = document.getElementById('current-nickname');
+const changeNickBtn = document.getElementById('change-nick-btn');
 
+function isNickClean(name) {
+    if (bannedWords.length === 0) return true; // Если база еще грузится, разрешаем
+    
+    const lowerName = name.toLowerCase();
+    
+    // Проверяем, содержится ли какое-то плохое слово в нике
+    // Метод .some вернет true, если найдет хотя бы одно совпадение
+    const hasBadWord = bannedWords.some(word => {
+        // Мы ищем слово только если оно длиннее 2 символов, чтобы не банить за случайные слоги
+        if (word.length <= 2) return false;
+        return lowerName.includes(word.toLowerCase());
+    });
+
+    return !hasBadWord;
+}
+
+function updateNickDisplay() {
+    let nick = localStorage.getItem('playerNick');
+    if (!nick) {
+        nick = "Аноним";
+    }
+    if (currentNickDisplay) {
+        currentNickDisplay.innerText = nick;
+    }
+}
+
+updateNickDisplay();
+
+// --- ЛОГИКА ОТОБРАЖЕНИЯ И ИЗМЕНЕНИЯ НИКА ---
+const MAX_NICK_LENGTH = 12; // Наш лимит
+
+if (changeNickBtn) {
+    changeNickBtn.addEventListener('click', () => {
+        let oldNick = localStorage.getItem('playerNick') || "Игрок";
+        let newNick = prompt(`Введите новый никнейм (макс. ${MAX_NICK_LENGTH} симв.):`, oldNick);
+        
+        if (newNick !== null && newNick.trim() !== "") {
+            // Обрезаем ник, если он длиннее лимита
+            let cleanNick = newNick.trim().substring(0, MAX_NICK_LENGTH); 
+            
+            if (isNickClean(cleanNick)) {
+                localStorage.setItem('playerNick', cleanNick);
+                updateNickDisplay();
+            } else {
+                alert("⚠️ Ник содержит запрещенные слова!");
+            }
+        }
+    });
+}
+
+function startGame() {
     isGameRunning = true;
     startTime = Date.now();
     
+    // Настраиваем чувствительность под глаза игрока
     if (currentAvgEAR <= 0) {
         blinkThreshold = 0.20;
     } else {
@@ -249,20 +359,40 @@ let finalDataToSend = null;
 function endGame() {
     isGameRunning = false;
     const finalTime = (Date.now() - startTime) / 1000;
-    
-    // Берем ник из памяти (мы его точно сохранили при старте)
     const playerName = localStorage.getItem('playerNick') || "Аноним";
 
-    // Отправляем в Firebase
-    db.collection("leaderboard").add({
-        name: playerName,
-        score: finalTime,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        console.log("Результат сохранен!");
-    });
+    if (isNickClean(playerName)) {
+        // 1. Ищем, есть ли уже игрок с таким именем в Firebase
+        db.collection("leaderboard")
+            .where("name", "==", playerName)
+            .get()
+            .then((querySnapshot) => {
+                if (!querySnapshot.empty) {
+                    // Игрок найден — берем его первый (и единственный) документ
+                    const doc = querySnapshot.docs[0];
+                    const existingData = doc.data();
 
-    // Показ экрана результатов
+                    // 2. Обновляем, только если новый результат выше старого
+                    if (finalTime > existingData.score) {
+                        doc.ref.update({
+                            score: finalTime,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(() => console.log("Рекорд обновлен! 🚀"));
+                    } else {
+                        console.log("Новый результат не побил старый рекорд.");
+                    }
+                } else {
+                    // 3. Такого игрока еще нет — создаем новую запись
+                    db.collection("leaderboard").add({
+                        name: playerName,
+                        score: finalTime,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => console.log("Новый игрок добавлен в базу!"));
+                }
+            })
+            .catch((error) => console.error("Ошибка Firebase: ", error));
+    }
+
     finalScoreDisplay.innerText = finalTime.toFixed(2);
     resultScreen.classList.add('show');
 }
@@ -345,8 +475,7 @@ leaderboardBtn.addEventListener('click', () => {
           leaderboardList.innerHTML = ''; 
           let rank = 1;
           
-          // ❌ УДАЛИ ИЛИ ЗАМЕНИ ЭТУ СТРОКУ, ОНА ВЫЗЫВАЕТ ОШИБКУ:
-          // const myName = tg.initDataUnsafe?.user?.first_name || "Аноним";
+          const myName = localStorage.getItem('playerNick') || "Аноним";
 
           querySnapshot.forEach((doc) => {
               const data = doc.data();

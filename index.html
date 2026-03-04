@@ -16,6 +16,10 @@
         <button id="skins-btn" class="top-btn left-btn">👕 Скины</button>
         <button id="leaderboard-btn" class="top-btn right-btn">🏆 Рейтинг</button>
         <h1>Не моргай! 👁️</h1>
+        <div id="player-info-panel">
+            👤 <span id="current-nickname">Аноним</span>
+            <button id="change-nick-btn">✏️ Изменить</button>
+        </div>
         
         <div id="camera-wrap">
             <video id="video" autoplay playsinline muted></video>
@@ -81,6 +85,14 @@
                 <button class="skin-option" data-skin="kyrgyzstan">
                     <img src="kyrgyzstan.jpeg" class="skin-preview">
                     <span>Кыргызстан</span>
+                </button>
+                <button class="skin-option" data-skin="heisenberg">
+                    <img src="heisenberg.png" class="skin-preview" style="object-fit: contain;">
+                    <span>Хайзенберг</span>
+                </button>
+                <button class="skin-option" data-skin="saul">
+                    <img src="saul_goodman.png" class="skin-preview" style="object-fit: contain;">
+                    <span>Сол Гудман</span>
                 </button>
             </div>
             <button id="close-skins-btn" class="close-btn">Закрыть</button>

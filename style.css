@@ -17,13 +17,14 @@ body {
 
 /* Делаем камеру идеально круглой */
 #camera-wrap {
-    width: 280px;
-    height: 280px;
-    border-radius: 50%;
-    border: 6px solid var(--tg-theme-button-color, #3390ec);
-    overflow: hidden;
-    margin: 20px auto;
-    background: #000; /* Черный фон, пока камера грузится */
+    width: 280px; /* */
+    height: 280px; /* */
+    border-radius: 50%; /* */
+    border: 6px solid var(--tg-theme-button-color, #3390ec); /* */
+    overflow: hidden; /* */
+    margin: 5px auto 20px auto; /* Уменьшаем верхний отступ до 5px */
+    background: #000; /* */
+    position: relative; /* */
 }
 
 video {
@@ -221,10 +222,10 @@ h1 {
     margin-bottom: 10px;
     object-fit: cover;
 }
-.default-preview { border: 2px solid #00FF00; background: transparent; }
+.default-preview { border: 2px solid #ffffff; background: transparent; }
 
 .close-btn {
-    background: #444;
+    background: #c43e3e;
     margin-top: 10px;
 }
 
@@ -304,4 +305,42 @@ h1 {
     font-weight: bold;
     text-shadow: 1px 1px 2px black; /* Тень, чтобы было видно на светлом фоне */
     pointer-events: none; /* Чтобы счетчик не мешал кликам */
+}
+
+/* --- СТИЛИ ДЛЯ ПАНЕЛИ НИКА --- */
+#player-info-panel {
+    margin: 0 auto 10px auto; /* Убираем отрицательный отступ и уменьшаем нижний до 10px */
+    padding: 8px 15px; /* */
+    background: rgba(255, 255, 255, 0.1); /* */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* */
+    border-radius: 20px; /* */
+    display: inline-flex; /* */
+    align-items: center; /* */
+    justify-content: center; /* */
+    gap: 10px; /* */
+    font-size: 16px; /* */
+    color: #fff; /* */
+}
+
+#change-nick-btn {
+    background: var(--tg-theme-button-color, #3390ec);
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s;
+}
+
+#change-nick-btn:active {
+    transform: scale(0.9);
+}
+
+#game-container h1 {
+    font-size: 32px; /* */
+    margin-top: 26px; /* Увеличиваем отступ от кнопок "Скины" и "Рейтинг" */
+    margin-bottom: 15px; /* Уменьшаем отступ снизу, чтобы ник был ближе */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* */
 }
