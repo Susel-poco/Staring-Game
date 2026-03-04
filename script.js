@@ -161,7 +161,23 @@ faceMesh.setOptions({
 faceMesh.onResults((results) => {
     canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) return;
+    if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+        // Лицо не найдено. Если игра еще не запущена — блокируем кнопку
+        if (!isGameRunning) {
+            actionBtn.disabled = true;
+            actionBtn.innerText = "Лицо не найдено 🕵️‍♂️";
+            actionBtn.style.backgroundColor = "gray";
+        }
+        return; // Выходим, так как рисовать нечего
+    } else {
+        // Лицо в кадре! Если игра еще не началась, включаем кнопку
+        if (!isGameRunning && actionBtn.disabled) {
+            actionBtn.disabled = false;
+            actionBtn.innerText = "Начать игру";
+            actionBtn.style.backgroundColor = ""; // Убираем серый цвет, возвращаем синий из CSS
+        }
+    }
+    
     const landmarks = results.multiFaceLandmarks[0];
     
     // 2. РИСУЕМ ГЛАЗА (В защищенном блоке)
@@ -398,12 +414,12 @@ function endGame() {
 }
 
 submitBtn.addEventListener('click', () => {
-    // Просто закрываем экран результатов, чтобы игрок мог начать заново
     resultScreen.classList.remove('show');
-    actionBtn.innerText = "Начать игру";
-    actionBtn.disabled = false;
-
-    actionBtn.style.backgroundColor = "";
+    
+    // Делаем кнопку серой, пока снова не поймаем лицо
+    actionBtn.disabled = true;
+    actionBtn.innerText = "Ищем лицо... ⏳";
+    actionBtn.style.backgroundColor = "gray";
 });
 
 // --- ЛОГИКА МЕНЮ СКИНОВ ---
